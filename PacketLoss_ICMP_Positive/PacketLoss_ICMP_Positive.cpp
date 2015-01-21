@@ -77,7 +77,7 @@ int PacketLoss_ICMP_Positive::get_packets_to_send()
 */
 
 
-int PacketLoss_ICMP_Positive::get_received()
+int inline PacketLoss_ICMP_Positive::get_received()
 {
 
 
@@ -143,7 +143,7 @@ int PacketLoss_ICMP_Positive::get_received()
 
 }
 
-int PacketLoss_ICMP_Positive::get_latency(int OS)
+int inline PacketLoss_ICMP_Positive::get_latency(int OS)
 {
 	ifstream in("1.txt");
 	if(in)
@@ -160,6 +160,18 @@ int PacketLoss_ICMP_Positive::get_latency(int OS)
 				if(count > 2 && count < 3 + this->packets_to_send)
 				{
 					string result = lines;
+
+					const string cannot_access = "无法访问";	//这种情形可以被定位收到，但是我把这样的收到减去了
+					int if_cannot_access = result.find(cannot_access,0);
+					if(if_cannot_access != -1)
+					{
+						delay.push_back(4000);
+						cout<<"cannot access"<<endl;
+						this->received--;
+						continue;
+					}
+
+
 					const string timeout = "超时";	// timeout time is 4000ms
 					int if_time_out = result.find(timeout,0); //can't find will return -1	,
 					if(if_time_out != -1)
@@ -238,7 +250,15 @@ float PacketLoss_ICMP_Positive::get_average_latency()
 
 float PacketLoss_ICMP_Positive::get_jitter()
 {
-	return 0;
+	float average = this->get_average_latency();
+	float tempsum = 0;
+	list<int>::iterator it;
+	for(it = this->delay.begin(); it!= this->delay.end();it++)
+	{
+		tempsum += powf((*it-average),2); 
+	}
+	float deviation = sqrtf(tempsum/this->packets_to_send);
+	return deviation;
 }
 
 float PacketLoss_ICMP_Positive::get_loss_rate()

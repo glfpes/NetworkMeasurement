@@ -22,9 +22,9 @@ float get_jitter();				//get jitter抖动值
 #include <fstream>
 #include <string>
 #include <list>
-#include <vector>
 #include <iterator>
 #include <stdio.h>
+#include <math.h>
 using namespace std;
 
 class PacketLoss_ICMP_Positive
@@ -38,9 +38,10 @@ class PacketLoss_ICMP_Positive
 		float get_loss_rate();			//get the packet loss rate
         bool isAvailable();				//decide if the connection is available
 		float get_average_latency();	//get average latency
-		float get_jitter();				//get jitter抖动值			
+		float get_jitter();				//get jitter抖动值	,求出标准差		
 
         virtual ~PacketLoss_ICMP_Positive();
+
     protected:
 
     private:

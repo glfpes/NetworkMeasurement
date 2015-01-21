@@ -3,7 +3,7 @@
 int main()
 {
 
-/*
+
 	cout<<"Please input the Destination you want to test: "<<endl;
     string IP("");
     cin>>IP;
@@ -15,17 +15,19 @@ int main()
 	cin>>OS;
 
 	PacketLoss_ICMP_Positive PacketLoss_ICMP(OS, num, IP);
-*/
 
 
+/*
 	int OS = 0;
 	int num = 3;
 	string IP = "www.baidu.com";
 	PacketLoss_ICMP_Positive PacketLoss_ICMP(OS, num, IP);
-	
+*/	
 	
 	float average_delay = PacketLoss_ICMP.get_average_latency();
 	cout<<"Average latency is "<<average_delay<<endl;
+	float jitter = PacketLoss_ICMP.get_jitter();
+	cout<<"Jitter(Standard deviation) is "<<jitter<<endl;
 
 	float loss_rate = PacketLoss_ICMP.get_loss_rate();
 	bool av = PacketLoss_ICMP.isAvailable();
