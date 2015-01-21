@@ -8,6 +8,7 @@ PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive()
 	received = 0;
 	receive_rate = 0;
 	loss_rate = 0;
+	
 }
 
 PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int OS, int packets_to_send, string IP)
@@ -18,6 +19,29 @@ PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int OS, int packets_to_send, 
 	received = 0;
 	receive_rate = 0;
 	loss_rate = 0;
+
+	string ping_para = "";
+	
+	if (OS == 0)
+	{
+		
+		ping_para = " -n ";
+	}
+	else if(OS == 1)
+	{
+		
+		ping_para = " -c ";
+	}
+
+	char ctime[10] = "";
+	sprintf(ctime,"%d",this->packets_to_send);
+	string IP_to_send = "ping "+ this->IP_to_test+ ping_para + ctime + " >1.txt";
+
+	cout<<IP_to_send<<endl;
+	system(IP_to_send.c_str());
+
+	this->get_received();
+	this->get_latency(this->OS);
 }
 
 void PacketLoss_ICMP_Positive::setOS(int i)
@@ -55,30 +79,24 @@ int PacketLoss_ICMP_Positive::get_packets_to_send()
 
 int PacketLoss_ICMP_Positive::get_received()
 {
-	string ping_para = "";
-	int line_to_scale = 0;
-	if (OS == 0)
-	{
-		line_to_scale = 5;
-		ping_para = " -n ";
-	}
-	else if(OS == 1)
-	{
-		line_to_scale = 4;
-		ping_para = " -c ";
-	}
 
-	char ctime[10] = "";
-	sprintf(ctime,"%d",this->packets_to_send);
-	string IP = "ping "+ this->IP_to_test+ ping_para + ctime + " >1.txt";
-
-	cout<<IP<<endl;
-	system(IP.c_str());
 
 	int received = 0;
 	ifstream in("1.txt");
 	if(in)
 	{
+
+		int line_to_scale = 0;
+		if (OS == 0)
+		{
+			line_to_scale = 5;
+
+		}
+		else if(OS == 1)
+		{
+			line_to_scale = 4;
+		
+		}
 		int count = 0;
 		string lines;
 		while (getline (in, lines))  // have no '\n',
@@ -125,7 +143,103 @@ int PacketLoss_ICMP_Positive::get_received()
 
 }
 
+int PacketLoss_ICMP_Positive::get_latency(int OS)
+{
+	ifstream in("1.txt");
+	if(in)
+	{
+		if(OS == 0)
+		{
+			int count = 0;
+			string lines;
+		
+			cout<<endl<<endl<<endl<<endl<<123<<endl;
+			while (getline (in, lines))  // have no '\n',
+			{
+				count++;
+				if(count > 2 && count < 3 + this->packets_to_send)
+				{
+					string result = lines;
+					const string timeout = "³¬Ê±";	// timeout time is 4000ms
+					int if_time_out = result.find(timeout,0); //can't find will return -1	,
+					if(if_time_out != -1)
+					{
+						delay.push_back(4000);
+						cout<<"timeout"<<endl;
+					}
+					else
+					{
+						const string find_latency_pos = "Ê±¼ä=";
+						int latency_pos = result.find(find_latency_pos,0) + 5;
+					
+						int latency_temp = 0;
+					
+						for(int i=latency_pos; result[i]!='m'; i++)
+							latency_temp=(latency_temp*10)+result[i]-'0';
+						delay.push_back(latency_temp);
+					}
+				}
+			}
+		}
+		else if (OS == 1)
+		{
+				string lines;
+                while (getline (in, lines))  // have no '\n',
+                {
+                         string result = lines;
+                         const string find_latency_pos = "time=";
+                         int find_anchor = result.find(find_latency_pos,0);
+                         if(find_anchor != -1)
+                         {
+                                 int latency_pos = find_anchor + 5;
+                                 int latency_temp = 0;
 
+                                 for(int i=latency_pos; result[i]!=' '; i++)
+                                 {
+                                        latency_temp=(latency_temp*10)+result[i]-'0';
+
+                                 }
+                                delay.push_back(latency_temp);
+                                cout<<latency_temp<<"------------"<<endl;
+                         }
+                }
+
+                int lost_packet = this->packets_to_send - this->received;
+                for(int i = 0; i < lost_packet; i++)
+                {
+                        delay.push_back(4000);
+                        cout<<4000<<"------------"<<endl;
+                }
+
+		}
+
+		//delay stores all latency numbers
+		return 0;
+	}
+	else
+	{
+		cerr << "some errors happened when reads the file.";
+		return -1;
+	}
+
+}
+
+float PacketLoss_ICMP_Positive::get_average_latency()
+{
+	int total = 0;
+	list<int>::iterator it;
+	for(it = this->delay.begin(); it!= this->delay.end();it++)
+	{
+		total += *it;
+	}
+	this->delay_average = total/this->packets_to_send;
+	return this->delay_average;
+}
+
+float PacketLoss_ICMP_Positive::get_jitter()
+{
+	return 0;
+}
 
 float PacketLoss_ICMP_Positive::get_loss_rate()
 {
