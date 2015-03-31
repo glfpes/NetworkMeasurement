@@ -8,7 +8,7 @@ PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive()
 	received = 0;
 	receive_rate = 0;
 	loss_rate = 0;
-	
+
 }
 
 PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int OS, int packets_to_send, string IP)
@@ -21,15 +21,15 @@ PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int OS, int packets_to_send, 
 	loss_rate = 0;
 
 	string ping_para = "";
-	
+
 	if (OS == 0)
 	{
-		
+
 		ping_para = " -n ";
 	}
 	else if(OS == 1)
 	{
-		
+
 		ping_para = " -c ";
 	}
 
@@ -95,7 +95,7 @@ int inline PacketLoss_ICMP_Positive::get_received()
 		else if(OS == 1)
 		{
 			line_to_scale = 4;
-		
+
 		}
 		int count = 0;
 		string lines;
@@ -105,6 +105,7 @@ int inline PacketLoss_ICMP_Positive::get_received()
 			count++;
 			if (count == this->packets_to_send + line_to_scale)	//反映结果的一行
 			{
+
 				string result = lines;
                 if(OS == 1)
                 {
@@ -120,19 +121,21 @@ int inline PacketLoss_ICMP_Positive::get_received()
 				{
 					if(i>0)
 					{
-						if((result[i]>='0'&&result[i]<='9') && (result[i-1]<='0' || result[i-1]>='9') && lock2 == 0)
+                        //cout<<"i = "<<result[i]<<" i-1 = "<<result[i-1]<<endl;
+						if((result[i]>='0'&&result[i]<='9') && (result[i-1]<'0' || result[i-1]>'9') && lock2 == 0)
 							lock1 = 1;
-						else if((result[i-1]>='0'&& result[i-1]<='9') &&  (result[i]<='0' || result[i]>='9') && lock2 == 0)
+						else if((result[i-1]>='0'&& result[i-1]<='9') &&  (result[i]<'0' || result[i]>'9') && lock2 == 0)
 							lock2 = 1;
 						else if(result[i]>='0'&&result[i]<='9' && lock1==1 && lock2 == 1)
-							received=(received*10)+result[i]-'0';
-						else if((result[i-1]>='0'&& result[i-1]<='9') &&  (result[i]<='0' || result[i]>='9') && lock1==1 && lock2 == 1 )
+							received=(received*10)+(result[i]-'0');
+						else if((result[i-1]>='0'&& result[i-1]<='9') &&  (result[i]<'0' || result[i]>'9') && lock1==1 && lock2 == 1 )
 							break;
 					}
 				}
 			}
 		}
 		this->received = received;
+		cout<<received<<"..************"<<endl;
 		return this->received;
 	}
 	else
@@ -152,7 +155,7 @@ int inline PacketLoss_ICMP_Positive::get_latency(int OS)
 		{
 			int count = 0;
 			string lines;
-		
+
 			cout<<endl<<endl<<endl<<endl<<123<<endl;
 			while (getline (in, lines))  // have no '\n',
 			{
@@ -183,9 +186,9 @@ int inline PacketLoss_ICMP_Positive::get_latency(int OS)
 					{
 						const string find_latency_pos = "时间=";
 						int latency_pos = result.find(find_latency_pos,0) + 5;
-					
+
 						int latency_temp = 0;
-					
+
 						for(int i=latency_pos; result[i]!='m'; i++)
 							latency_temp=(latency_temp*10)+result[i]-'0';
 						delay.push_back(latency_temp);
@@ -204,11 +207,34 @@ int inline PacketLoss_ICMP_Positive::get_latency(int OS)
                          if(find_anchor != -1)
                          {
                                  int latency_pos = find_anchor + 5;
-                                 int latency_temp = 0;
+                                 float latency_temp = 0;
 
+                                 bool dotLocker = 0; //0:digits before dot; 1:digits after dot
+
+                                 int k = 0; // total number of digits with dot
+
+                                 int before_point = 0;   //total number of digits before dot with dot
                                  for(int i=latency_pos; result[i]!=' '; i++)
                                  {
-                                        latency_temp=(latency_temp*10)+result[i]-'0';
+
+                                        if(result[i] =='.')
+                                        {
+                                            dotLocker = 1;
+                                            before_point++;
+                                        }
+
+                                        else if(dotLocker == 0)
+                                        {
+                                            latency_temp=(latency_temp*10)+result[i]-'0';
+                                            before_point++;
+                                        }
+                                        else if(dotLocker == 1)
+                                        {
+                                            latency_temp += (result[i]-'0')*pow(10,-1*(k-before_point+1));
+                                        }
+
+
+                                        k++;
 
                                  }
                                 delay.push_back(latency_temp);
@@ -255,7 +281,7 @@ float PacketLoss_ICMP_Positive::get_jitter()
 	list<int>::iterator it;
 	for(it = this->delay.begin(); it!= this->delay.end();it++)
 	{
-		tempsum += powf((*it-average),2); 
+		tempsum += powf((*it-average),2);
 	}
 	float deviation = sqrtf(tempsum/this->packets_to_send);
 	return deviation;

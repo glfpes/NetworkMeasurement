@@ -2,11 +2,15 @@
 
 int main(int argc, char* argv[])
 {
-	int num_of_para = argc;
-	char* OS_string = argv[1];
-	char* IP = argv[2];
-	char* num_to_send_string = argv[3];
-	
+	//int num_of_para = argc;
+	//char* OS_string = argv[1];
+	//char* IP = argv[2];
+	//char* num_to_send_string = argv[3];
+
+	char* OS_string = "1";
+    char* IP = "www.sina.com.cn";
+    char* num_to_send_string = "10";
+
 	int OS = atoi(OS_string);
 	int num = atoi(num_to_send_string);
 	cout<<OS<<endl<<IP<<endl<<num<<endl;
@@ -49,7 +53,7 @@ int main(int argc, char* argv[])
 	int num = 3;
 	string IP = "www.baidu.com";
 	PacketLoss_ICMP_Positive PacketLoss_ICMP(OS, num, IP);
-*/	
+*/
 	/*
 	float average_delay = PacketLoss_ICMP.get_average_latency();
 	cout<<"Average latency is "<<average_delay<<endl;
@@ -61,7 +65,7 @@ int main(int argc, char* argv[])
 	cout<<"Packet Loss Rate is "<<loss_rate<<endl;
 	cout<<"Availablity is "<<av<<endl;
 	*/
-	
+
 
 	return 0;
 }
