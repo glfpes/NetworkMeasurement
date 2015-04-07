@@ -1,0 +1,15 @@
+PING 192.168.1.151 (192.168.1.151) 56(84) bytes of data.
+64 bytes from 192.168.1.151: icmp_seq=1 ttl=128 time=16.7 ms
+64 bytes from 192.168.1.151: icmp_seq=2 ttl=128 time=2.95 ms
+64 bytes from 192.168.1.151: icmp_seq=3 ttl=128 time=21.1 ms
+64 bytes from 192.168.1.151: icmp_seq=4 ttl=128 time=1.98 ms
+64 bytes from 192.168.1.151: icmp_seq=5 ttl=128 time=1.94 ms
+64 bytes from 192.168.1.151: icmp_seq=6 ttl=128 time=1.93 ms
+64 bytes from 192.168.1.151: icmp_seq=7 ttl=128 time=4.10 ms
+64 bytes from 192.168.1.151: icmp_seq=8 ttl=128 time=13.4 ms
+64 bytes from 192.168.1.151: icmp_seq=9 ttl=128 time=10.7 ms
+64 bytes from 192.168.1.151: icmp_seq=10 ttl=128 time=8.26 ms
+
+--- 192.168.1.151 ping statistics ---
+10 packets transmitted, 10 received, 0% packet loss, time 9012ms
+rtt min/avg/max/mdev = 1.938/8.330/21.116/6.600 ms
