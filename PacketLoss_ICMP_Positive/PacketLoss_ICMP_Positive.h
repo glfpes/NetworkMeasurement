@@ -31,7 +31,7 @@ class PacketLoss_ICMP_Positive
 {
     public:
         PacketLoss_ICMP_Positive();
-        PacketLoss_ICMP_Positive(int packets_to_send, string IP);
+        PacketLoss_ICMP_Positive(int packets_to_send, string IP, float c_rate, float s_bandwidth);
 
 
 
@@ -40,22 +40,33 @@ class PacketLoss_ICMP_Positive
 		float get_average_latency();	//get average latency
 		float get_jitter();				//get jitter抖动值	,求出标准差
 
+		float get_bandwidth();
+		bool isCongestion();
+
+
+
         virtual ~PacketLoss_ICMP_Positive();
     private:
 		//Private Methods
-        int analyse();
+        int ping_analyse();
+        int bing_analyse();
 
 		//Private Parameters
         string IP_to_test;
         int packets_to_send;
+        float congestion_rate; //if (available bandwidth/set bandwidth) > congestion_rate, it is viewed as non-congested return 0
+        float set_bandwidth;  //Mbps
 
         int received;
 		list<float> delay;
 
+        float bandwidth;
+		bool congestion; //0:non congested, 1:congested
         float receive_rate;
         float loss_rate;
 		float delay_average;
-		float tremble;
+		float jitter;
+
 };
 
 #endif // PACKETLOSS_ICMP_POSITIVE_H

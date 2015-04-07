@@ -7,16 +7,26 @@ PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive()
 	received = 0;
 	receive_rate = 0;
 	loss_rate = 0;
+
+	set_bandwidth = 10;
+
 }
 
-PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int packets_to_send, string IP)
+PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int packets_to_send, string IP, float c_rate, float s_bandwidth)
 {
 
 	this->packets_to_send = packets_to_send;
 	this->IP_to_test = IP;
-	received = 0;
-	receive_rate = 0;
-	loss_rate = 0;
+	this->congestion_rate = c_rate;
+	this->set_bandwidth = s_bandwidth;
+
+	this->received = 0;
+    this->bandwidth = 0;
+    this->congestion = 0;
+	this->receive_rate = 0;
+	this->loss_rate = 0;
+	this->delay_average = 0;
+	this->jitter = 0;
 
 	string ping_para = "";
 
@@ -27,11 +37,12 @@ PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int packets_to_send, string I
 	cout<<IP_to_send<<endl;
 	system(IP_to_send.c_str());
 
-	this->analyse();
+	this->ping_analyse();
+	this->bing_analyse();
 }
 
 //return 0 success, return -1 error
-int PacketLoss_ICMP_Positive::analyse()
+int PacketLoss_ICMP_Positive::ping_analyse()
 {
     int received_packets = 0;
 	ifstream in("1.txt");
@@ -99,6 +110,66 @@ int PacketLoss_ICMP_Positive::analyse()
 	}
 }
 
+
+int PacketLoss_ICMP_Positive::bing_analyse()
+{
+    string command = "bing -e 1000 -z localhost " + this->IP_to_test + " >2.txt";
+    cout<<command<<endl;
+    system(command.c_str());
+    ifstream in("2.txt");
+    if(in)
+    {
+        string lines;
+        string result;
+        while (getline (in, lines))  // have no '\n',
+        {
+            result = lines;
+        }
+        cout<<result<<endl;
+        const string find_latency_pos = "Mbps";
+        int find_anchor = result.find(find_latency_pos,0);
+        int latency_pos = find_anchor - 5;
+
+        float latency_temp = 0;
+
+        bool dotLocker = 0; //0:digits before dot; 1:digits after dot
+
+        int k = 0; // total number of digits with dot
+
+        int before_point = 0;   //total number of digits before dot with dot
+        for(int i=latency_pos; result[i]!=' '; i++)
+        {
+
+            if(result[i] =='.')
+            {
+                dotLocker = 1;
+                before_point++;
+            }
+
+            else if(dotLocker == 0)
+            {
+                latency_temp=(latency_temp*10)+result[i]-'0';
+                before_point++;
+            }
+            else if(dotLocker == 1)
+            {
+                latency_temp += (result[i]-'0')*pow(10,-1*(k-before_point+1));
+            }
+
+            k++;
+        }
+        cout<<latency_temp<<endl;
+        this->bandwidth = latency_temp;
+
+        return 0;
+    }
+    else
+    {
+        cerr << "some errors happened when reads the file.";
+		return -1;
+    }
+}
+
 float PacketLoss_ICMP_Positive::get_average_latency()
 {
 	float total = 0;
@@ -121,7 +192,8 @@ float PacketLoss_ICMP_Positive::get_jitter()
 		tempsum += powf((*it-average),2);
 	}
 	float deviation = sqrtf(tempsum/this->packets_to_send);
-	return deviation;
+	this->jitter = deviation;
+	return this->jitter;
 }
 
 float PacketLoss_ICMP_Positive::get_loss_rate()
@@ -146,6 +218,21 @@ bool PacketLoss_ICMP_Positive::isAvailable()
 	else if(receive_rate == 0)
 			return false;
 }
+
+float PacketLoss_ICMP_Positive::get_bandwidth()
+{
+    return this->bandwidth;
+}
+
+bool PacketLoss_ICMP_Positive::isCongestion()
+{
+    float congestion_ratio = this->bandwidth/this->set_bandwidth;
+    if(congestion_ratio > congestion_rate)
+        return false;
+    else
+        return true;
+}
+
 
 PacketLoss_ICMP_Positive::~PacketLoss_ICMP_Positive()
 {
