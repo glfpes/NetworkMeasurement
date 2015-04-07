@@ -1,0 +1,3 @@
+sudo is essential in ./ICMP_Positive
+the command to use this program after successful compile is:
+sudo ./ICMP_Positive IP num_of_packets_to_s 
