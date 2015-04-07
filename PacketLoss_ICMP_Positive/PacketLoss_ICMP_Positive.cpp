@@ -2,18 +2,16 @@
 
 PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive()
 {
-	OS = 0;
 	IP_to_test = "";
 	packets_to_send = 0;
 	received = 0;
 	receive_rate = 0;
 	loss_rate = 0;
-
 }
 
-PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int OS, int packets_to_send, string IP)
+PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int packets_to_send, string IP)
 {
-	this->OS = OS;
+
 	this->packets_to_send = packets_to_send;
 	this->IP_to_test = IP;
 	received = 0;
@@ -22,235 +20,75 @@ PacketLoss_ICMP_Positive::PacketLoss_ICMP_Positive(int OS, int packets_to_send, 
 
 	string ping_para = "";
 
-	if (OS == 0)
-	{
-
-		ping_para = " -n ";
-	}
-	else if(OS == 1)
-	{
-
-		ping_para = " -c ";
-	}
-
 	char ctime[10] = "";
 	sprintf(ctime,"%d",this->packets_to_send);
-	string IP_to_send = "ping "+ this->IP_to_test+ ping_para + ctime + " >1.txt";
+	string IP_to_send = "ping "+ this->IP_to_test+ " -c " + ctime + " >1.txt" ;
 
 	cout<<IP_to_send<<endl;
 	system(IP_to_send.c_str());
 
-	this->get_received();
-	this->get_latency(this->OS);
+	this->analyse();
 }
 
-void PacketLoss_ICMP_Positive::setOS(int i)
+//return 0 success, return -1 error
+int PacketLoss_ICMP_Positive::analyse()
 {
-	OS = i;
-}
-
-void PacketLoss_ICMP_Positive::setIP(std::string  IP)
-{
-	IP_to_test = IP;
-}
-
-void PacketLoss_ICMP_Positive::set_packets_to_send(int num)
-{
-	packets_to_send = num;
-}
-
-/*
-int PacketLoss_ICMP_Positive::getOS()
-{
-	return OS;
-}
-
-string PacketLoss_ICMP_Positive::getIP()
-{
-	return IP_to_test;
-}
-
-int PacketLoss_ICMP_Positive::get_packets_to_send()
-{
-	return packets_to_send;
-}
-*/
-
-
-int inline PacketLoss_ICMP_Positive::get_received()
-{
-
-
-	int received = 0;
+    int received_packets = 0;
 	ifstream in("1.txt");
 	if(in)
 	{
+        string lines;
+        while (getline (in, lines))  // have no '\n',
+        {
+            string result = lines;
+            const string find_latency_pos = "time=";
+            int find_anchor = result.find(find_latency_pos,0);
+            if(find_anchor != -1)
+            {
+                received_packets++;     //one more packet received
 
-		int line_to_scale = 0;
-		if (OS == 0)
-		{
-			line_to_scale = 5;
+                //string analyse to find the digitial packet transmit time
+                int latency_pos = find_anchor + 5;
+                float latency_temp = 0;
 
-		}
-		else if(OS == 1)
-		{
-			line_to_scale = 4;
+                bool dotLocker = 0; //0:digits before dot; 1:digits after dot
 
-		}
-		int count = 0;
-		string lines;
-		while (getline (in, lines))  // have no '\n',
-		{
-			cout << lines << endl;
-			count++;
-			if (count == this->packets_to_send + line_to_scale)	//反映结果的一行
-			{
+                int k = 0; // total number of digits with dot
 
-				string result = lines;
-                if(OS == 1)
+                int before_point = 0;   //total number of digits before dot with dot
+                for(int i=latency_pos; result[i]!=' '; i++)
                 {
-                    result = "header " + result;
+
+                    if(result[i] =='.')
+                    {
+                        dotLocker = 1;
+                        before_point++;
+                    }
+
+                    else if(dotLocker == 0)
+                    {
+                        latency_temp=(latency_temp*10)+result[i]-'0';
+                        before_point++;
+                    }
+                    else if(dotLocker == 1)
+                    {
+                        latency_temp += (result[i]-'0')*pow(10,-1*(k-before_point+1));
+                    }
+
+                    k++;
                 }
+                delay.push_back(latency_temp);
+                cout<<latency_temp<<"------------"<<endl;
+            }
+        }
+        this->received = received_packets;  //received packets number
 
-				//需要处理数据，得到具体的丢失数量
-                cout<<endl<<result<<endl;
-
-				bool lock1 = 0;
-				bool lock2 = 0;
-				for(int i=0;result[i]!='\0';i++)
-				{
-					if(i>0)
-					{
-                        //cout<<"i = "<<result[i]<<" i-1 = "<<result[i-1]<<endl;
-						if((result[i]>='0'&&result[i]<='9') && (result[i-1]<'0' || result[i-1]>'9') && lock2 == 0)
-							lock1 = 1;
-						else if((result[i-1]>='0'&& result[i-1]<='9') &&  (result[i]<'0' || result[i]>'9') && lock2 == 0)
-							lock2 = 1;
-						else if(result[i]>='0'&&result[i]<='9' && lock1==1 && lock2 == 1)
-							received=(received*10)+(result[i]-'0');
-						else if((result[i-1]>='0'&& result[i-1]<='9') &&  (result[i]<'0' || result[i]>'9') && lock1==1 && lock2 == 1 )
-							break;
-					}
-				}
-			}
-		}
-		this->received = received;
-		cout<<received<<"..************"<<endl;
-		return this->received;
-	}
-	else
-	{
-		cerr << "some errors happened when reads the file.";
-		return -1;
-	}
-
-}
-
-int inline PacketLoss_ICMP_Positive::get_latency(int OS)
-{
-	ifstream in("1.txt");
-	if(in)
-	{
-		if(OS == 0)
-		{
-			int count = 0;
-			string lines;
-
-			cout<<endl<<endl<<endl<<endl<<123<<endl;
-			while (getline (in, lines))  // have no '\n',
-			{
-				count++;
-				if(count > 2 && count < 3 + this->packets_to_send)
-				{
-					string result = lines;
-
-					const string cannot_access = "无法访问";	//这种情形可以被定位收到，但是我把这样的收到减去了
-					int if_cannot_access = result.find(cannot_access,0);
-					if(if_cannot_access != -1)
-					{
-						delay.push_back(4000);
-						cout<<"cannot access"<<endl;
-						this->received--;
-						continue;
-					}
-
-
-					const string timeout = "超时";	// timeout time is 4000ms
-					int if_time_out = result.find(timeout,0); //can't find will return -1	,
-					if(if_time_out != -1)
-					{
-						delay.push_back(4000);
-						cout<<"timeout"<<endl;
-					}
-					else
-					{
-						const string find_latency_pos = "时间=";
-						int latency_pos = result.find(find_latency_pos,0) + 5;
-
-						int latency_temp = 0;
-
-						for(int i=latency_pos; result[i]!='m'; i++)
-							latency_temp=(latency_temp*10)+result[i]-'0';
-						delay.push_back(latency_temp);
-					}
-				}
-			}
-		}
-		else if (OS == 1)
-		{
-				string lines;
-                while (getline (in, lines))  // have no '\n',
-                {
-                         string result = lines;
-                         const string find_latency_pos = "time=";
-                         int find_anchor = result.find(find_latency_pos,0);
-                         if(find_anchor != -1)
-                         {
-                                 int latency_pos = find_anchor + 5;
-                                 float latency_temp = 0;
-
-                                 bool dotLocker = 0; //0:digits before dot; 1:digits after dot
-
-                                 int k = 0; // total number of digits with dot
-
-                                 int before_point = 0;   //total number of digits before dot with dot
-                                 for(int i=latency_pos; result[i]!=' '; i++)
-                                 {
-
-                                        if(result[i] =='.')
-                                        {
-                                            dotLocker = 1;
-                                            before_point++;
-                                        }
-
-                                        else if(dotLocker == 0)
-                                        {
-                                            latency_temp=(latency_temp*10)+result[i]-'0';
-                                            before_point++;
-                                        }
-                                        else if(dotLocker == 1)
-                                        {
-                                            latency_temp += (result[i]-'0')*pow(10,-1*(k-before_point+1));
-                                        }
-
-
-                                        k++;
-
-                                 }
-                                delay.push_back(latency_temp);
-                                cout<<latency_temp<<"------------"<<endl;
-                         }
-                }
-
-                int lost_packet = this->packets_to_send - this->received;
-                for(int i = 0; i < lost_packet; i++)
-                {
-                        delay.push_back(4000);
-                        cout<<4000<<"------------"<<endl;
-                }
-
-		}
-
+        int lost_packet = this->packets_to_send - this->received;
+        for(int i = 0; i < lost_packet; i++)
+        {
+                delay.push_back(4000);
+                cout<<4000<<"------------"<<endl;
+        }
 		//delay stores all latency numbers
 		return 0;
 	}
@@ -259,13 +97,12 @@ int inline PacketLoss_ICMP_Positive::get_latency(int OS)
 		cerr << "some errors happened when reads the file.";
 		return -1;
 	}
-
 }
 
 float PacketLoss_ICMP_Positive::get_average_latency()
 {
-	int total = 0;
-	list<int>::iterator it;
+	float total = 0;
+	list<float>::iterator it;
 	for(it = this->delay.begin(); it!= this->delay.end();it++)
 	{
 		total += *it;
@@ -278,7 +115,7 @@ float PacketLoss_ICMP_Positive::get_jitter()
 {
 	float average = this->get_average_latency();
 	float tempsum = 0;
-	list<int>::iterator it;
+	list<float>::iterator it;
 	for(it = this->delay.begin(); it!= this->delay.end();it++)
 	{
 		tempsum += powf((*it-average),2);

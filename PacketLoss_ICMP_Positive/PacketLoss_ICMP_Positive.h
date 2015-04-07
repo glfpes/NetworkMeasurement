@@ -10,7 +10,7 @@ int get_latency(int OS) 将所有包的延迟时间记录到私有链表delay中，返回0操作完成，
 float get_loss_rate() 返回丢包率
 bool isAvailable 返回可用性，1为可用 0为不可用
 float get_average_latency();	//get average latency
-float get_jitter();				//get jitter抖动值	
+float get_jitter();				//get jitter抖动值
 ***************************/
 
 
@@ -31,39 +31,26 @@ class PacketLoss_ICMP_Positive
 {
     public:
         PacketLoss_ICMP_Positive();
-        PacketLoss_ICMP_Positive(int OS, int packets_to_send, string IP);
+        PacketLoss_ICMP_Positive(int packets_to_send, string IP);
 
 
-		
+
 		float get_loss_rate();			//get the packet loss rate
         bool isAvailable();				//decide if the connection is available
 		float get_average_latency();	//get average latency
-		float get_jitter();				//get jitter抖动值	,求出标准差		
+		float get_jitter();				//get jitter抖动值	,求出标准差
 
         virtual ~PacketLoss_ICMP_Positive();
-
-    protected:
-
     private:
 		//Private Methods
-		void setOS(int i);		////0 windows 1 linux
-        void setIP(string  IP);	//set the destination IP or URL
-        void set_packets_to_send(int num);	//decide how many packets you want to test
-        //int getOS();
-        //string getIP();
-        //int get_packets_to_send();
-
-		int get_received();		//get the number received after test
-		int get_latency(int OS);		//set list delay which contains delay result for each test packet. return 0 for success and return -1 for wrong file read.
-        
+        int analyse();
 
 		//Private Parameters
-    	int OS; //0 windows 1 linux
         string IP_to_test;
         int packets_to_send;
 
         int received;
-		list<int> delay;
+		list<float> delay;
 
         float receive_rate;
         float loss_rate;
