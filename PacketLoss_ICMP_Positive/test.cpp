@@ -2,16 +2,17 @@
 
 int main(int argc, char* argv[])
 {
-	//int num_of_para = argc;
+	int num_of_para = argc;
 
-	//char* IP = argv[1];
-	//char* num_to_send_string = argv[2];
+	char* IP = argv[1];
+	char* num_to_send_string = argv[2];
+	char* c_rate_raw = argv[3];
+	char* s_bandwidth_raw = argv[4];
 
-
-    char* IP = "www.sina.com.cn";
-    char* num_to_send_string = "10";
-    char* c_rate_raw = "0.30";
-    char* s_bandwidth_raw = "10";
+    	//char* IP = "www.sina.com.cn";
+    	//char* num_to_send_string = "10";
+    	//char* c_rate_raw = "0.30";
+   	//char* s_bandwidth_raw = "10";
 
 
 	int num = atoi(num_to_send_string);
