@@ -11,10 +11,14 @@ int main(int argc, char* argv[])
 {
 
     string IP(argv[1]);
-    string temp_filename(argv[2]);
+    string protocol(argv[2]);
+    string temp_filename(argv[3]);
+
     string timestamp = temp_filename;
     temp_filename += "_temp_route.dat";
-    string command = "traceroute -I ";
+
+    string command = "traceroute " + protocol;
+    command += " ";
     command += IP;
     command += ">";
     command += temp_filename;
