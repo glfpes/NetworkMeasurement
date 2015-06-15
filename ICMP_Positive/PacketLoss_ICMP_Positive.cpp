@@ -128,7 +128,8 @@ void PacketLoss_ICMP_Positive::ping_analyse()
 
 void PacketLoss_ICMP_Positive::bing_analyse()
 {
-    string command = "bing -e 100 -z localhost " + this->IP_to_test + " >" + this->tmp_file_bing;
+    //-S a means packet size is large with 1000 bytes. -e b means make b tests.
+    string command = "bing -S 1000 -e 100 -z localhost " + this->IP_to_test + " >" + this->tmp_file_bing;
     cout<<command<<endl;
     system(command.c_str());
     ifstream in(this->tmp_file_bing);
@@ -140,10 +141,22 @@ void PacketLoss_ICMP_Positive::bing_analyse()
         {
             result = lines;
         }
-        cout<<result<<endl;
+        cout<<"********"<<result<<"********"<<endl;
         const string find_latency_pos = "Mbps";
         int find_anchor = result.find(find_latency_pos,0);
-        int latency_pos = find_anchor - 5;
+        cout<<"Where is Mbps string lies "<<find_anchor<<endl;
+        if(find_anchor == -1)
+        {
+            this->bandwidth = -1.0;
+            return;
+        }
+
+
+        //int latency_pos = find_anchor - 5;
+        int latency_pos = find_anchor - 4;
+        while(result[latency_pos] != ' ')
+            latency_pos--;
+        latency_pos++;
 
         float latency_temp = 0;
 
@@ -175,6 +188,8 @@ void PacketLoss_ICMP_Positive::bing_analyse()
         }
         cout<<latency_temp<<endl;
         this->bandwidth = latency_temp;
+
+
 
         //return 0;
     }

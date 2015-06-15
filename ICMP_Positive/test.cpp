@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	bool av = PacketLoss_ICMP.isAvailable();
 	float bandwidth = PacketLoss_ICMP.get_bandwidth();
 	bool isCongestion = PacketLoss_ICMP.isCongestion();
-    PacketLoss_ICMP.delete_tmp();
+    //PacketLoss_ICMP.delete_tmp();
 
 	ofstream out;
 	string tmp_result = "_result.txt";

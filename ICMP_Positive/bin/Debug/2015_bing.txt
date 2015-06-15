@@ -1,0 +1,17 @@
+BING	localhost (127.0.0.1) and 127.0.0.1 (127.0.0.1)
+	44 and 1000 data bytes (15296 bits)
+127.0.0.1: minimum delay difference is zero, can't estimate link throughput
+
+--- localhost statistics ---
+bytes   out    in   dup  loss	rtt (ms): min       avg       max   std dev
+   44   100   200        ****	        0.005     0.007     0.124     0.009
+ 1000   100   200        ****	        0.006     0.006     0.016     0.001
+
+--- 127.0.0.1 statistics ---
+bytes   out    in   dup  loss	rtt (ms): min       avg       max   std dev
+   44   100     0        100%	
+ 1000   100     0        100%	
+
+--- estimated link characteristics ---
+host			          bandwidth       ms
+127.0.0.1: not enough received packets
